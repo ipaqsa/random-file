@@ -3,15 +3,15 @@ package main
 import (
 	"crypto/rand"
 	"flag"
+	"github.com/cheggaaa/pb/v3"
+	"io"
 	"log"
 	"os"
 )
 
-const bufferSize = 2048
-
 func main() {
 	path := flag.String("o", "", "Output file")
-	size := flag.Int("s", 0, "Size file(Bytes)")
+	size := flag.Int64("s", 0, "Size file(Bytes)")
 	flag.Parse()
 	if *path == "" || *size == 0 {
 		log.Fatal("Specify size(-s) and output(-o)")
@@ -22,27 +22,20 @@ func main() {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	chunks := *size / bufferSize
-	remain := *size - chunks*bufferSize
+	err = process(file, *size)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
-	buf := make([]byte, bufferSize)
-	for i := 0; i < chunks; i++ {
-		_, err = rand.Read(buf)
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = file.Write(buf)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	remainsBytes := make([]byte, remain)
-	_, err = rand.Read(remainsBytes)
+func process(output *os.File, limit int64) error {
+	reader := io.LimitReader(rand.Reader, limit)
+	bar := pb.Full.Start64(limit)
+	barReader := bar.NewProxyReader(reader)
+	_, err := io.Copy(output, barReader)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	_, err = file.Write(remainsBytes)
-	if err != nil {
-		log.Fatal(err)
-	}
+	bar.Finish()
+	return nil
 }
