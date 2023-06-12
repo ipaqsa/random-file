@@ -1,4 +1,4 @@
-# Creator Random File (CRF)
+# Creator Random File
 
 ## Overview
 Util for creating a random file of a given size
@@ -7,11 +7,11 @@ Util for creating a random file of a given size
 
 ### Build
 ```asciidoc
-go build -o crf main.go
+go build -o random-file main.go
 ```
 
 ### Run
 ```asciidoc
-crf -o tmpfile -s 2024
+random-file -o tmpfile -s 2024
 ```
 * Size in byte
